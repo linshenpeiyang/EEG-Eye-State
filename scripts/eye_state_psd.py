@@ -13,9 +13,9 @@ Workflow:
     4. Plot a semilog comparison figure with band shading.
 
 Usage:
-    python eeg_eye_state_psd.py                 # average over all channels
-    python eeg_eye_state_psd.py O1              # single channel
-    python eeg_eye_state_psd.py O1 50           # channel and artifact threshold
+    python scripts/eye_state_psd.py                 # average over all channels
+    python scripts/eye_state_psd.py O1              # single channel
+    python scripts/eye_state_psd.py O1 50           # channel and artifact threshold
 """
 
 from pathlib import Path
@@ -42,9 +42,9 @@ BANDS = {
     "Gamma": (30.0, 45.0),
 }
 
-BASE_DIR = Path(__file__).resolve().parent
-ARFF_PATH = BASE_DIR / "uci_eeg_eye_state_data" / "EEG Eye State.arff"
-OUTPUT_IMAGE = BASE_DIR / "eeg_eye_state_psd.png"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ARFF_PATH = PROJECT_ROOT / "data" / "EEG Eye State.arff"
+OUTPUT_IMAGE = PROJECT_ROOT / "results" / "eeg_eye_state_psd.png"
 
 # Publication style: Times New Roman for Latin characters
 plt.rcParams["font.family"] = [
@@ -169,6 +169,7 @@ def plot_psd_comparison(result, channel_label, output_path=None):
     ax.legend(loc="upper right", frameon=False, fontsize=11)
 
     if output_path is not None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(output_path, dpi=300, bbox_inches="tight")
         print(f"Comparison plot saved: {output_path}")
     if plt.get_backend().lower() != "agg":
@@ -185,7 +186,7 @@ def main():
     if not ARFF_PATH.exists():
         raise FileNotFoundError(
             f"EEG data not found: {ARFF_PATH}\n"
-            "Run uci_eeg_eye_state.py first to download the dataset"
+            "Run scripts/download_data.py first to download the dataset"
         )
 
     df = load_arff(ARFF_PATH)

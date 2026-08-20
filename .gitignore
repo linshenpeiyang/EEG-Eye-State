@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 eeg_eye_state_psd_notebook.png
+results/

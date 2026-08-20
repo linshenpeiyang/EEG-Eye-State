@@ -12,7 +12,7 @@ Dependencies:
     pip install pandas scipy
 
 Usage:
-    python uci_eeg_eye_state.py
+    python scripts/download_data.py
 """
 
 from pathlib import Path
@@ -25,9 +25,9 @@ from scipy.io import arff
 # Official UCI download URL, dynamically packaged zip from the new site
 DATA_URL = "https://archive.ics.uci.edu/static/public/264/eeg+eye+state.zip"
 
-# Data directory: uci_eeg_eye_state_data/ next to this script
-BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "uci_eeg_eye_state_data"
+# Data directory: data/ under the project root
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
 ARCHIVE_PATH = DATA_DIR / "eeg-eye-state.zip"
 
 CHUNK_SIZE = 1024 * 1024  # Read 1 MB at a time

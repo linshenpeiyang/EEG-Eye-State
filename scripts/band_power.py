@@ -11,10 +11,10 @@ Band definitions, standard EEG segments that can be overridden:
 
 Usage:
     # Run the demo and generate a pie chart
-    python eeg_band_power.py [channel]   # defaults to AF3
+    python scripts/band_power.py [channel]   # defaults to AF3
 
     # Reuse as a module
-    from eeg_band_power import compute_psd, compute_band_power
+    from band_power import compute_psd, compute_band_power
     freqs, psd = compute_psd(x, fs=128.0)
     band_power, ratios = compute_band_power(freqs, psd)
 """
@@ -52,9 +52,9 @@ BAND_COLORS = {
     "Gamma": "#CCB974",
 }
 
-BASE_DIR = Path(__file__).resolve().parent
-ARFF_PATH = BASE_DIR / "uci_eeg_eye_state_data" / "EEG Eye State.arff"
-OUTPUT_IMAGE = BASE_DIR / "eeg_band_power_pie.png"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ARFF_PATH = PROJECT_ROOT / "data" / "EEG Eye State.arff"
+OUTPUT_IMAGE = PROJECT_ROOT / "results" / "eeg_band_power_pie.png"
 
 # Font settings for matplotlib on macOS
 plt.rcParams["font.sans-serif"] = [
@@ -179,6 +179,7 @@ def plot_band_pie(ratios, bands=None, channel=None, output_path=None):
     ax.axis("equal")
 
     if output_path is not None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(output_path, dpi=150, bbox_inches="tight")
         print(f"Pie chart saved: {output_path}")
     if plt.get_backend().lower() != "agg":
@@ -205,7 +206,7 @@ def main():
     if not ARFF_PATH.exists():
         raise FileNotFoundError(
             f"EEG data not found: {ARFF_PATH}\n"
-            "Run uci_eeg_eye_state.py first to download the dataset"
+            "Run scripts/download_data.py first to download the dataset"
         )
 
     df = load_arff(ARFF_PATH)

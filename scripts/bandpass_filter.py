@@ -6,10 +6,10 @@ Default parameters: 128 Hz sampling rate, 1-40 Hz passband, 4th-order Butterwort
 
 Usage:
     # Run the test and generate a comparison plot
-    python eeg_bandpass_filter.py [channel]   # defaults to AF3
+    python scripts/bandpass_filter.py [channel]   # defaults to AF3
 
     # Reuse as a module
-    from eeg_bandpass_filter import bandpass_filter
+    from bandpass_filter import bandpass_filter
     y = bandpass_filter(x, lowcut=1.0, highcut=40.0, fs=128.0, order=4, axis=-1)
 """
 
@@ -29,9 +29,9 @@ DEFAULT_LOWCUT = 1.0
 DEFAULT_HIGHCUT = 40.0
 DEFAULT_ORDER = 4
 
-BASE_DIR = Path(__file__).resolve().parent
-ARFF_PATH = BASE_DIR / "uci_eeg_eye_state_data" / "EEG Eye State.arff"
-OUTPUT_IMAGE = BASE_DIR / "eeg_bandpass_filter_result.png"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ARFF_PATH = PROJECT_ROOT / "data" / "EEG Eye State.arff"
+OUTPUT_IMAGE = PROJECT_ROOT / "results" / "eeg_bandpass_filter_result.png"
 
 # Font settings for matplotlib on macOS
 plt.rcParams["font.sans-serif"] = [
@@ -180,6 +180,7 @@ def plot_comparison(raw, filtered, fs, channel, output_path, display_seconds=4.0
     ax_psd.legend(loc="upper right")
     ax_psd.grid(alpha=0.3)
 
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=150)
     print(f"Comparison plot saved: {output_path}")
     if plt.get_backend().lower() != "agg":
@@ -192,7 +193,7 @@ def main():
     if not ARFF_PATH.exists():
         raise FileNotFoundError(
             f"EEG data not found: {ARFF_PATH}\n"
-            "Run uci_eeg_eye_state.py first to download the dataset"
+            "Run scripts/download_data.py first to download the dataset"
         )
 
     df = load_arff(ARFF_PATH)

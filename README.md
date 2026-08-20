@@ -22,19 +22,24 @@ Data source: Roesler, O. 2013. *EEG Eye State* [Dataset]. UCI Machine Learning R
 
 ```
 EEG-Eye-State/
-├── app.py                    # Streamlit application for visualization
-├── eeg_eye_state_psd.ipynb   # Analysis report with embedded outputs
-├── uci_eeg_eye_state.py      # Downloads the dataset
-├── eeg_bandpass_filter.py    # Butterworth band-pass filtering
-├── eeg_band_power.py         # PSD and band power ratios
-├── eeg_eye_state_psd.py      # Command-line PSD comparison plot
-├── uci_eeg_eye_state_data/   # Data directory
-├── requirements.txt          # Python dependencies
-└── README.md                 # This document
+├── app/
+│   └── app.py                 # Streamlit application for visualization
+├── notebooks/
+│   └── eeg_eye_state_psd.ipynb # Analysis report with embedded outputs
+├── scripts/
+│   ├── download_data.py       # Downloads the dataset
+│   ├── bandpass_filter.py     # Butterworth band-pass filtering
+│   ├── band_power.py          # PSD and band power ratios
+│   └── eye_state_psd.py       # Command-line PSD comparison plot
+├── data/
+│   └── EEG Eye State.arff     # Dataset
+├── requirements.txt           # Python dependencies
+└── README.md                  # This document
 ```
 
-- `app.py` is for demonstration: it loads the data and refreshes the charts immediately when the state changes.
-- `eeg_eye_state_psd.ipynb` is for reporting and reproduction: it explains the motivation and implementation of each step.
+- `app/app.py` is for demonstration: it loads the data and refreshes the charts immediately when the state changes.
+- `notebooks/eeg_eye_state_psd.ipynb` is for reporting and reproduction: it explains the motivation and implementation of each step.
+- The command-line scripts save generated figures to `results/`.
 
 ## Environment Setup
 
@@ -54,10 +59,10 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 The pinned versions match the development environment and are compatible with Python 3.9. The scripts read ARFF data with `scipy.io.arff`; `liac-arff` is included as a fallback parser.
 
-If `uci_eeg_eye_state_data/` lacks `EEG Eye State.arff`, download it first:
+If `data/` lacks `EEG Eye State.arff`, download it first:
 
 ```bash
-python uci_eeg_eye_state.py
+python scripts/download_data.py
 ```
 
 ## Usage
@@ -66,20 +71,20 @@ python uci_eeg_eye_state.py
 
 ```bash
 conda activate eeg_project
-streamlit run app.py
+streamlit run app/app.py
 ```
 
 Open <http://localhost:8501>. Select the eye state in the sidebar; the Alpha power bar chart and raw waveform update immediately. To use a different port:
 
 ```bash
-streamlit run app.py --server.port 8502
+streamlit run app/app.py --server.port 8502
 ```
 
 ### Open the Analysis Report
 
 ```bash
 conda activate eeg_project
-jupyter lab eeg_eye_state_psd.ipynb
+jupyter lab notebooks/eeg_eye_state_psd.ipynb
 ```
 
 All results are embedded. To rerun the notebook, execute the cells in order with Shift+Enter.
@@ -100,7 +105,7 @@ Present the theory first and the live demo second, in about 8-10 minutes:
 
 3. Checklist before the demo.
    - Start the app in advance and confirm <http://localhost:8501> is reachable.
-   - Confirm the data file exists in `uci_eeg_eye_state_data/` to avoid downloading on site.
+   - Confirm the data file exists in `data/` to avoid downloading on site.
    - The notebook outputs are embedded, so no re-execution is needed.
 
 ## Reference

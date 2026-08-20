@@ -2,8 +2,8 @@
 """
 Streamlit web app for EEG eyes-open and eyes-closed state analysis.
 
-Run with:
-    /opt/anaconda3/bin/streamlit run app.py
+Run from the project root:
+    /opt/anaconda3/bin/streamlit run app/app.py
 
 Features:
     - Sidebar controls for selecting the eye state and the waveform channel;
@@ -43,15 +43,16 @@ DATA_FOLDERS = ("uci_eeg_eye_state_data", "data")
 
 
 def find_arff():
-    """Locate the downloaded data file in the working directory or the home directory."""
-    for base in (Path.cwd(), Path.home()):
+    """Locate the data file in the working directory, its parents, or the home directory."""
+    for base in (Path.cwd(), *Path.cwd().parents, Path.home()):
         for folder in DATA_FOLDERS:
             path = base / folder / "EEG Eye State.arff"
             if path.exists():
                 return path
     raise FileNotFoundError(
-        "EEG Eye State.arff not found in uci_eeg_eye_state_data/ or data/. "
-        "Run uci_eeg_eye_state.py first to download the data"
+        "EEG Eye State.arff not found in uci_eeg_eye_state_data/ or data/ under "
+        "the working directory, its parents, or the home directory. "
+        "Run scripts/download_data.py first to download the data"
     )
 
 
