@@ -1,0 +1,4 @@
+.DS_Store
+__pycache__/
+*.pyc
+eeg_eye_state_psd_notebook.png
