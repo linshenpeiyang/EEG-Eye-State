@@ -1,113 +1,108 @@
-# EEG 眼动状态分析项目
+# EEG Eye State Analysis
 
-> 交互式探索 × 深度频谱分析：睁眼 / 闭眼状态下脑电节律的可视化与量化研究。
+EEG spectral analysis of the eyes-open and eyes-closed states.
 
-## 项目简介
+## Overview
 
-本项目基于 UCI「EEG Eye State」公开数据集，实现了一条从数据获取、去噪预处理到频域分析的完整流程，交付物包含两个互补的部分：
+This project uses the public EEG Eye State dataset from UCI and covers the full pipeline from data acquisition and denoising to frequency-domain analysis. It contains two complementary deliverables:
 
-- **交互式应用 `app.py`**（Streamlit）：无需编写代码即可快速浏览数据。在侧边栏选择「睁眼 / 闭眼」状态，右侧实时展示各通道 Alpha 波（8-13 Hz）能量柱状图与原始波形图。
-- **深度分析报告 `eeg_eye_state_psd.ipynb`**（Jupyter Notebook）：完整记录 PSD 分析逻辑，包括伪迹剔除、Welch 谱估计、频带划分、绘图与结果解读，且已嵌入全部运行输出，可直接审阅。
+- **Interactive app `app.py`**: a Streamlit application for browsing the data. The sidebar selects the eye state and the waveform channel; the main panel shows the Alpha power bar chart for every channel and the raw waveform.
+- **Analysis report `eeg_eye_state_psd.ipynb`**: a Jupyter notebook that documents artifact rejection, Welch PSD estimation, band decomposition, plotting, and result interpretation. All outputs are embedded.
 
-方法要点：
+Key methods:
 
-- 数据：128 Hz 采样、14 个 EEG 通道 + 眼动标签 `eye_state`（0 = 睁眼，1 = 闭眼），共 14,980 个样本；
-- 去噪：剔除偏离各通道中位数超过 ±100 的尖峰伪迹（眨眼、肌电、电极接触不良等宽带干扰）；
-- 频域分析：Welch 法估计功率谱密度（PSD），按 Delta（0.5-4 Hz）、Theta（4-8 Hz）、Alpha（8-13 Hz）、Beta（13-30 Hz）、Gamma（30-45 Hz）划分频带；
-- 主要发现：闭眼状态下 Delta 低频功率明显高于睁眼状态；教科书中的「闭眼 Alpha 增强」效应在这份噪声较大的公开数据中较弱。
+- Data: 128 Hz sampling, 14 EEG channels plus the eye-state label `eye_state`, 14,980 samples in total;
+- Denoising: samples deviating from the channel median by more than ±100 are removed as spike artifacts;
+- Frequency analysis: the Welch method estimates the power spectral density PSD, divided into Delta 0.5-4 Hz, Theta 4-8 Hz, Alpha 8-13 Hz, Beta 13-30 Hz, and Gamma 30-45 Hz bands;
+- Main finding: Delta low-frequency power is higher with eyes closed than with eyes open; the classical eyes-closed Alpha enhancement is weak in this dataset.
 
-数据来源：Roesler, O. (2013). EEG Eye State [Dataset]. UCI Machine Learning Repository. <https://doi.org/10.24432/C57G7J>
+Data source: Roesler, O. 2013. *EEG Eye State* [Dataset]. UCI Machine Learning Repository. <https://doi.org/10.24432/C57G7J>
 
-## 文件结构
+## File Structure
 
 ```
 EEG-Eye-State/
-├── app.py                    # Streamlit 交互式应用（快速可视化工具）
-├── eeg_eye_state_psd.ipynb   # 深度分析报告（算法验证 + 结果解读，已嵌入输出）
-├── uci_eeg_eye_state.py      # 辅助：使用 urllib 自动下载数据集
-├── eeg_bandpass_filter.py    # 辅助：butter + filtfilt 带通滤波
-├── eeg_band_power.py         # 辅助：PSD 与频带能量占比计算
-├── eeg_eye_state_psd.py      # 辅助：命令行版 PSD 对比绘图
-├── uci_eeg_eye_state_data/   # 数据目录（EEG Eye State.arff）
-├── requirements.txt          # Python 依赖清单
-└── README.md                 # 本文档
+├── app.py                    # Streamlit application for visualization
+├── eeg_eye_state_psd.ipynb   # Analysis report with embedded outputs
+├── uci_eeg_eye_state.py      # Downloads the dataset
+├── eeg_bandpass_filter.py    # Butterworth band-pass filtering
+├── eeg_band_power.py         # PSD and band power ratios
+├── eeg_eye_state_psd.py      # Command-line PSD comparison plot
+├── uci_eeg_eye_state_data/   # Data directory
+├── requirements.txt          # Python dependencies
+└── README.md                 # This document
 ```
 
-- `app.py` 面向演示与快速检查：加载数据后通过侧边栏下拉框切换状态，图表即时刷新；
-- `eeg_eye_state_psd.ipynb` 面向汇报与复现：按步骤逐段解释每一步的动机、生理意义与代码实现，是本项目的核心分析报告。
+- `app.py` is for demonstration: it loads the data and refreshes the charts immediately when the state changes.
+- `eeg_eye_state_psd.ipynb` is for reporting and reproduction: it explains the motivation and implementation of each step.
 
-## 环境安装指南
+## Environment Setup
 
-推荐使用 Anaconda 创建独立的 Python 3.9 虚拟环境：
+Create a dedicated Python 3.9 environment with Anaconda:
 
 ```bash
-# 1. 创建虚拟环境
 conda create -n eeg_project python=3.9 -y
-
-# 2. 激活环境
 conda activate eeg_project
-
-# 3. 安装依赖
 pip install -r requirements.txt
 ```
 
-网络较慢时可使用国内镜像源：
+On slow networks, use a mirror:
 
 ```bash
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-依赖清单中的版本号与开发验证环境一致，且全部兼容 Python 3.9。说明：当前脚本使用 `scipy.io.arff` 读取 ARFF 数据，`liac-arff` 作为备用的 ARFF 解析库一并列入。
+The pinned versions match the development environment and are compatible with Python 3.9. The scripts read ARFF data with `scipy.io.arff`; `liac-arff` is included as a fallback parser.
 
-如果打包目录 `uci_eeg_eye_state_data/` 中缺少 `EEG Eye State.arff`，请先运行下载脚本获取数据：
+If `uci_eeg_eye_state_data/` lacks `EEG Eye State.arff`, download it first:
 
 ```bash
 python uci_eeg_eye_state.py
 ```
 
-## 运行操作手册
+## Usage
 
-### 启动网页应用
+### Launch the Web App
 
 ```bash
 conda activate eeg_project
 streamlit run app.py
 ```
 
-在浏览器中访问 <http://localhost:8501>。左侧下拉框选择「睁眼 / 闭眼」，右侧的 Alpha 波能量柱状图与原始波形图会实时刷新。若默认端口被占用，可指定其他端口：
+Open <http://localhost:8501>. Select the eye state in the sidebar; the Alpha power bar chart and raw waveform update immediately. To use a different port:
 
 ```bash
 streamlit run app.py --server.port 8502
 ```
 
-### 查看分析报告
+### Open the Analysis Report
 
 ```bash
 conda activate eeg_project
 jupyter lab eeg_eye_state_psd.ipynb
 ```
 
-Notebook 已嵌入全部运行结果，打开即可查看；如需重新执行，依次按 Shift+Enter 运行各单元格。
+All results are embedded. To rerun the notebook, execute the cells in order with Shift+Enter.
 
-## 给导师的演示建议（重要）
+## Demo Suggestions
 
-建议采用「先理论、后交互」的顺序，总时长约 8-10 分钟：
+Present the theory first and the live demo second, in about 8-10 minutes:
 
-1. **先打开 Notebook 讲方法与理论**（约 5 分钟）
-   - 数据集与眼动标签含义（128 Hz、14 通道，0 = 睁眼、1 = 闭眼）；
-   - 伪迹剔除的动机：眨眼、肌电与电极接触不良是宽带干扰，会严重污染频谱估计；
-   - Welch PSD 原理与五个频带（Delta ~ Gamma）的生理意义对照表；
-   - 结论图解读：闭眼时 Delta 低频功率升高，并客观说明 alpha 效应在本数据中较弱。
+1. Open the notebook and explain the method and theory.
+   - Dataset and label: 128 Hz, 14 channels, 0 = eyes open, 1 = eyes closed.
+   - Why artifact rejection is needed: blinks, muscle activity, and poor electrode contact produce broadband interference.
+   - The Welch PSD and the physiological roles of the five bands from Delta to Gamma.
+   - The conclusion: Delta low-frequency power rises with eyes closed, while the alpha effect is weak.
 
-2. **再启动 Streamlit 现场演示**（约 3-5 分钟）
-   - 切换「睁眼 / 闭眼」下拉框，展示 Alpha 能量柱状图与原始波形的即时变化，突出交互性；
-   - 可进一步切换波形显示通道（如枕区 O1/O2），展示不同脑区的表现。
+2. Run the Streamlit demo live.
+   - Switch the eye-state selector to show changes in Alpha energy and the raw waveform.
+   - Switch the displayed channel, for example occipital O1 or O2, to show regional differences.
 
-3. **演示前准备清单**
-   - 提前 `conda activate eeg_project` 并启动服务，确认 <http://localhost:8501> 可访问；
-   - 确认数据文件存在于 `uci_eeg_eye_state_data/`，避免现场重新下载；
-   - Notebook 已嵌入输出，无需现场重新执行，避免等待。
+3. Checklist before the demo.
+   - Start the app in advance and confirm <http://localhost:8501> is reachable.
+   - Confirm the data file exists in `uci_eeg_eye_state_data/` to avoid downloading on site.
+   - The notebook outputs are embedded, so no re-execution is needed.
 
-## 引用
+## Reference
 
-Roesler, O. (2013). *EEG Eye State* [Dataset]. UCI Machine Learning Repository. <https://doi.org/10.24432/C57G7J>
+Roesler, O. 2013. *EEG Eye State* [Dataset]. UCI Machine Learning Repository. <https://doi.org/10.24432/C57G7J>

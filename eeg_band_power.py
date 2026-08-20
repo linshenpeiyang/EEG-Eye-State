@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-计算 EEG 信号的功率谱密度（PSD）与五个频带的能量占比，并画饼图。
+Compute the power spectral density (PSD) of an EEG signal and the power ratios of five frequency bands, and plot a pie chart.
 
-频带定义（标准 EEG 分段，可按需覆盖）：
+Band definitions, standard EEG segments that can be overridden:
     Delta: 0.5-4 Hz
     Theta: 4-8 Hz
     Alpha: 8-13 Hz
     Beta:  13-30 Hz
     Gamma: 30-45 Hz
 
-用法:
-    # 运行演示并生成饼图
-    python eeg_band_power.py [通道名]   # 默认通道 AF3
+Usage:
+    # Run the demo and generate a pie chart
+    python eeg_band_power.py [channel]   # defaults to AF3
 
-    # 作为模块复用
+    # Reuse as a module
     from eeg_band_power import compute_psd, compute_band_power
     freqs, psd = compute_psd(x, fs=128.0)
     band_power, ratios = compute_band_power(freqs, psd)
@@ -29,12 +29,12 @@ import pandas as pd
 from scipy.io import arff
 from scipy.signal import welch
 
-try:  # numpy >= 2.0 用 trapezoid, 旧版本用 trapz
+try:  # numpy >= 2.0 provides trapezoid; older versions provide trapz
     from numpy import trapezoid as _trapz
 except ImportError:
     from numpy import trapz as _trapz
 
-# ---- 常量 ----
+# ---- Constants ----
 DEFAULT_FS = 128.0
 DEFAULT_BANDS = {
     "Delta": (0.5, 4.0),
@@ -56,7 +56,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ARFF_PATH = BASE_DIR / "uci_eeg_eye_state_data" / "EEG Eye State.arff"
 OUTPUT_IMAGE = BASE_DIR / "eeg_band_power_pie.png"
 
-# macOS 下让 matplotlib 正常显示中文
+# Font settings for matplotlib on macOS
 plt.rcParams["font.sans-serif"] = [
     "Arial Unicode MS",
     "PingFang SC",
@@ -70,30 +70,30 @@ plt.rcParams["axes.unicode_minus"] = False
 
 
 def compute_psd(x, fs=DEFAULT_FS, nperseg=None, window="hann", detrend="constant"):
-    """用 Welch 法估计单边功率谱密度，返回 (freqs, psd)。
+    """Estimate the one-sided PSD with the Welch method; return (freqs, psd).
 
-    psd 的单位为 (输入信号单位)²/Hz，对频率积分后的功率单位为
-    (输入信号单位)²，具体量纲取决于 x 的物理单位。
+    The unit of psd is input-unit squared per Hz; integrating over frequency
+    yields power in input units squared, depending on the physical unit of x.
 
-    参数
-    ----
+    Parameters
+    ----------
     x : array-like
-        一维 EEG 信号。
+        One-dimensional EEG signal.
     fs : float
-        采样率（Hz），默认 128。
+        Sampling rate in Hz, default 128.
     nperseg : int or None
-        每段样本数；默认取 2 秒窗口（频率分辨率 0.5 Hz）。
+        Samples per segment; defaults to a 2-second window, giving 0.5 Hz resolution.
     window, detrend
-        直接传给 scipy.signal.welch。
+        Passed directly to scipy.signal.welch.
     """
     x = np.asarray(x, dtype=float)
     if x.ndim != 1:
-        raise ValueError("compute_psd 只支持一维信号")
+        raise ValueError("compute_psd supports one-dimensional signals only")
 
     if nperseg is None:
         nperseg = min(int(2 * fs), x.size)
     if nperseg > x.size:
-        raise ValueError(f"nperseg={nperseg} 大于信号长度 {x.size}")
+        raise ValueError(f"nperseg={nperseg} exceeds the signal length {x.size}")
 
     freqs, psd = welch(
         x, fs=fs, window=window, nperseg=nperseg, detrend=detrend
@@ -102,9 +102,9 @@ def compute_psd(x, fs=DEFAULT_FS, nperseg=None, window="hann", detrend="constant
 
 
 def compute_band_power(freqs, psd, bands=None):
-    """按频带对 PSD 积分，返回 (各频带绝对功率, 归一化能量占比)。
+    """Integrate the PSD over each band; return absolute band powers and normalized ratios.
 
-    占比以五个频带的总功率为分母，保证加起来等于 100%。
+    Ratios are normalized by the total power of the five bands so they sum to 100%.
     """
     if bands is None:
         bands = DEFAULT_BANDS
@@ -114,8 +114,8 @@ def compute_band_power(freqs, psd, bands=None):
     for name, (low, high) in bands.items():
         if low >= freqs[-1]:
             warnings.warn(
-                f"{name} 频带 ({low}-{high} Hz) 完全超出 "
-                f"测量范围 (最高 {freqs[-1]:.1f} Hz)，该频带记为 0"
+                f"{name} band ({low}-{high} Hz) lies entirely outside "
+                f"the measured range, up to {freqs[-1]:.1f} Hz; set to 0"
             )
             band_power[name] = 0.0
             continue
@@ -130,14 +130,14 @@ def compute_band_power(freqs, psd, bands=None):
         total += power
 
     if total <= 0:
-        raise ValueError("所有频带的功率总和为 0，无法计算占比")
+        raise ValueError("Total power of all bands is zero, cannot compute ratios")
 
     ratios = {name: power / total for name, power in band_power.items()}
     return band_power, ratios
 
 
 def plot_band_pie(ratios, bands=None, channel=None, output_path=None):
-    """把频带能量占比画成饼图。"""
+    """Plot band power ratios as a pie chart."""
     if bands is None:
         bands = DEFAULT_BANDS
 
@@ -161,7 +161,7 @@ def plot_band_pie(ratios, bands=None, channel=None, output_path=None):
         text.set_fontweight("bold")
 
     ax.set_title(
-        f"{channel} 通道频带能量占比" if channel else "频带能量占比",
+        f"Band power ratios for channel {channel}" if channel else "Band power ratios",
         fontsize=14,
     )
     legend_labels = [
@@ -174,20 +174,20 @@ def plot_band_pie(ratios, bands=None, channel=None, output_path=None):
         legend_labels,
         loc="center left",
         bbox_to_anchor=(1, 0.5),
-        title="频带",
+        title="Band",
     )
     ax.axis("equal")
 
     if output_path is not None:
         fig.savefig(output_path, dpi=150, bbox_inches="tight")
-        print(f"饼图已保存: {output_path}")
+        print(f"Pie chart saved: {output_path}")
     if plt.get_backend().lower() != "agg":
         plt.show()
     return fig
 
 
 def load_arff(arff_path):
-    """读取 ARFF 并转换为 DataFrame（与下载脚本一致）。"""
+    """Read an ARFF file and convert it to a DataFrame, consistent with the download script."""
     with arff_path.open("r", encoding="utf-8") as fh:
         data, _ = arff.loadarff(fh)
 
@@ -204,31 +204,31 @@ def main():
     channel = sys.argv[1] if len(sys.argv) > 1 else "AF3"
     if not ARFF_PATH.exists():
         raise FileNotFoundError(
-            f"未找到 EEG 数据: {ARFF_PATH}\n"
-            "请先运行 uci_eeg_eye_state.py 下载数据集"
+            f"EEG data not found: {ARFF_PATH}\n"
+            "Run uci_eeg_eye_state.py first to download the dataset"
         )
 
     df = load_arff(ARFF_PATH)
     if channel not in df.columns:
         available = ", ".join(df.columns)
-        raise ValueError(f"通道 {channel!r} 不存在，可用通道: {available}")
+        raise ValueError(f"Channel {channel!r} does not exist; available channels: {available}")
 
     raw = df[channel].to_numpy(dtype=float)
     freqs, psd = compute_psd(raw, fs=DEFAULT_FS)
     band_power, ratios = compute_band_power(freqs, psd)
 
     resolution = freqs[1] - freqs[0]
-    print(f"通道: {channel}，样本数: {len(raw)}，采样率: {DEFAULT_FS:.0f} Hz")
-    print(f"PSD: Welch 法，频率分辨率 {resolution:.2f} Hz\n")
+    print(f"Channel: {channel}, samples: {len(raw)}, sampling rate: {DEFAULT_FS:.0f} Hz")
+    print(f"PSD: Welch method, frequency resolution {resolution:.2f} Hz\n")
 
-    print("频带能量统计:")
+    print("Band power statistics:")
     for name in DEFAULT_BANDS:
         low, high = DEFAULT_BANDS[name]
         print(
             f"  {name:<6} {low:g}-{high:g} Hz: "
-            f"功率 {band_power[name]:.3f}，占比 {ratios[name] * 100:.2f}%"
+            f"power {band_power[name]:.3f}, ratio {ratios[name] * 100:.2f}%"
         )
-    print(f"  合计占比: {sum(ratios.values()) * 100:.2f}%")
+    print(f"  Total ratio: {sum(ratios.values()) * 100:.2f}%")
 
     plot_band_pie(ratios, DEFAULT_BANDS, channel, OUTPUT_IMAGE)
 

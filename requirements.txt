@@ -1,26 +1,26 @@
 # ============================================================
-# EEG 眼动状态分析项目依赖清单
-# 版本号与开发/验证环境一致，全部兼容 Python 3.9
-# 安装: pip install -r requirements.txt
+# EEG Eye State Analysis - Python dependencies
+# Versions match the development environment and support Python 3.9
+# Install: pip install -r requirements.txt
 # ============================================================
 
-# ---- 交互式网页应用 ----
+# ---- Interactive web app ----
 streamlit==1.37.1
 
-# ---- 数据处理与数值计算 ----
+# ---- Data processing and numerical computing ----
 pandas==2.2.2
 numpy==1.26.4
 
-# ---- 科学计算与信号处理 ----
+# ---- Scientific computing and signal processing ----
 scipy==1.13.1
 
-# ---- 可视化 ----
+# ---- Visualization ----
 matplotlib==3.9.2
 seaborn==0.13.2
 
-# ---- ARFF 数据解析 ----
+# ---- ARFF parsing ----
 liac-arff==2.5.0
 
-# ---- Jupyter 分析环境 ----
+# ---- Jupyter analysis environment ----
 jupyter==1.0.0
 jupyterlab==4.2.5
